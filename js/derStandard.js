@@ -1,7 +1,12 @@
 var initialized = false;
 
-(function(redirectMobile, showCheckboxes) {
+(function() {
 	"use strict";
+
+	// ignore ad iframe
+	if(document.location.pathname == '/MetaAdServer/MAS.aspx') {
+		return;
+	}
 
 	var settings;
 
@@ -53,11 +58,14 @@ var initialized = false;
 		});
 
 		db.transaction(function(tx) {
-			tx.executeSql("delete from articles where added < date(\'now\', \'-14 days\') ");
+			tx.executeSql("delete from articles where added < date(\'now\', \'-14 days\')", [], function(tx, res) {
+				console.log('deleted', res.rowsAffected, 'articles older than 14 days from database');
+			});
 
 			tx.executeSql('select count(*) as total, sum(read) as read  from articles', [], function(tx, res) {
-				console.log('articles in database', res.rows.item(0)['total']);
-				console.log('read articles in database', res.rows.item(0)['read']);
+				var row = res.rows.item(0);
+				console.log('articles in database', row['total']);
+				console.log('read articles in database', row['read']);
 			});
 		});
 
@@ -132,6 +140,8 @@ var initialized = false;
 						s.mark_read();
 						return;
 					} else {
+						tx.executeSql("insert or ignore into articles(id,added,read) values (?,date(\'now\'),?)", [s.id, 0], null, function(tx,e){ console.log('error inserting into database',s,e)});
+
 						if(settings.show_checkboxes) {
 							var readBtn = newReadButton();
 							readBtn.onclick = function(e) { s.mark_read(); e.preventDefault(); }
@@ -149,8 +159,6 @@ var initialized = false;
 
 						s.element.ondblclick = function(e) { s.mark_read(); }
 					}
-
-					tx.executeSql("insert into articles(id,added,read) values (?,date(\'now\'),?)", [s.id, 0]);
 				});
 			});
 		});

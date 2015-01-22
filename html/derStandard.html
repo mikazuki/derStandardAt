@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<script type="text/javascript">
+		safari.application.addEventListener( "message", function( e ) {
+			if( e.name === "getSettings" ) {
+				e.target.page.dispatchMessage( "setSettings", {
+					redirect_mobile: safari.extension.settings.redirectMobile,
+					show_checkboxes: safari.extension.settings.showCheckboxes,
+				} );
+			}
+		}, false );
+	</script>
+</head>
+<body></body>
+</html>
